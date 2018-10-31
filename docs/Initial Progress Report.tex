@@ -60,7 +60,8 @@
         \end{tikzpicture}
     \end{center}
     \subsection{Sentence Isolation}
-    Reference resolution and sentence segmentation so that each sentence is $\sim$independent.
+    Reference resolution and sentence segmentation so that each sentence is $\sim$independent. This
+    should also remove parenthetical expressions and put them as standalone sentences.
     \subsection{Manual Rules}
     A set of manual rules for generating a question from a sentence (using parse tree?).
     \subsection{Questions Generation}
@@ -69,9 +70,22 @@
     \subsection{Rank Importance}
     Rank all questions based on the topic and output highest $n$.
     \subsection{Maximum Matching}
-    Return sentence that matches the question  the most.
+    Return sentence that matches the question topic the most.
     \subsection{Post-process}
-    Remove parenthetical expressions, handle negation, etc.
+    Handle negation, etc.
+    \section{Tools and libraries}
+    We checked out NLTK and Stanford NLP core both of which have useful functionalities for our
+    project, e.g. POS tagger, parser, reference resolution. Other tools might be required as we
+    starting implementing and learn the actual requirements of each task
     \section{Team Logistics}
+    We decided to initially divide the work by component as follows:
+    \begin{itemize}
+        \item Sentence isolation: Haya,
+        \item Question generation: Abubaker,
+        \item Rank importance: Mohammed,
+        \item Maximum match: Akhyar
+    \end{itemize}
+    We will compile a list of maual tools together and decide for post processing later as it is not
+    very well defined yet.
     
 \end{document}
