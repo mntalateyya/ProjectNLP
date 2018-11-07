@@ -1,2 +1,5 @@
-docs/*log
-docs/*aux
+/docs/*
+!/docs/*.tex
+!/docs/*.pdf
+!/docs/*.doc
+!/docs/*.docx
