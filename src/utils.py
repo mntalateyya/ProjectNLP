@@ -17,7 +17,7 @@ class Document(object):
 		self.nlp = StanfordCoreNLP('http://localhost:9000')
 
 		# Get the sentences from the document string and store them
-		self.sentences = self.setSentences()
+		self.sentences = self.setSentences(text)
 
 	# get stored sentences of the text document
 	# output: list of sentences
@@ -26,7 +26,7 @@ class Document(object):
 
 	# set sentences from the text document
 	# Notice: supposed to be called once, in initilization
-	def setSentences(self):
+	def setSentences(self, text):
 		
 		sentences = []
 
@@ -62,23 +62,24 @@ class Document(object):
 
 # ------- example --------
 
-text = 'Michel Hazanavicius fantasized about making a silent film'
+if __name__ == "__main__":
+	text = 'Michel Hazanavicius fantasized about making a silent film'
 
-docObject = Document(text)
+	docObject = Document(text)
 
-print(docObject.getSentences())
+	print(docObject.getSentences())
 
 
-# Match template pattren to sentence -> generate question accordingly
-# notice: + means one or more, * means 0 or more
-# pattren: proper_noun+ ... verb in the past ... object+ 
-x = docObject.matchTokensRegex(r'([{ tag:"NNP" }])+ []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])')
+	# Match template pattren to sentence -> generate question accordingly
+	# notice: + means one or more, * means 0 or more
+	# pattren: proper_noun+ ... verb in the past ... object+ 
+	x = docObject.matchTokensRegex(r'([{ tag:"NNP" }])+ []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])')
 
-# Sample Template:
-# What [subject] [past verb] about ?
-for matching in x:
-	# check if there was a good match
-	_subject, _verb, _object = matching['1']['text'], matching['2']['text'] , matching['3']['text']
-	question = "What {} {} about?".format(_subject, _verb)
-	answer   = _object
-	print(question, '- answer:',answer)
+	# Sample Template:
+	# What [subject] [past verb] about ?
+	for matching in x:
+		# check if there was a good match
+		_subject, _verb, _object = matching['1']['text'], matching['2']['text'] , matching['3']['text']
+		question = "What {} {} about?".format(_subject, _verb)
+		answer   = _object
+		print(question, '- answer:',answer)

@@ -26,6 +26,7 @@ class DepGraph:
         self.tokens = ['ROOT'] + list(map(lambda tok: tok['word'], out['tokens']))
         self.pos = ['$'] + list(map(lambda tok: tok['pos'], out['tokens']))
         self.edges = [set() for _ in range(len(out['tokens'])+1)]
+        self.visited = None
 
         for token in out['enhancedPlusPlusDependencies']:
             self.add_dep(token['governor'], token['dependent'], token['dep'])
@@ -33,6 +34,10 @@ class DepGraph:
     def add_dep(self, parent, child, relation):
         ''' add the relation from parent word index to child word index '''
         self.edges[parent].add((child, relation))
+    
+    def match(self, parent_pos, children):
+        self.visited = [False for _ in range(self.length+1)]
+        return self.find_relation(0, parent_pos, children)
 
     def find_relation(self, node, parent_pos, children):
         '''
@@ -42,7 +47,7 @@ class DepGraph:
             children: an iterable that yields (relation, pos) constraints for children, pos is
             allowed to be None for unspecified pos
         '''
-
+        self.visited[node] = True
         found = False
         if not parent_pos or (self.pos[node] == parent_pos):
             result = [node]
@@ -60,7 +65,8 @@ class DepGraph:
             return result
 
         for child, _ in self.edges[node]:
-            result = self.find_relation(child, parent_pos, children)
-            if result:
-                return result
+            if not self.visited[child]:
+                result = self.find_relation(child, parent_pos, children)
+                if result:
+                    return result
         return []
