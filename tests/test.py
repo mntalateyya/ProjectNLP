@@ -5,11 +5,6 @@ from pycorenlp import StanfordCoreNLP
 
 client = StanfordCoreNLP('http://localhost:9000')
 
-text = 'The quick brown fox jumps over the lazy dog.'
-dg = DepGraph(client, text)
-for index in dg.find_relation(0, 'VBZ', [('nsubj', None)]):
-    print(dg.tokens[index])
-
 sents = ['Linus created Linux', 'You ate the apple', 'I wrote a book']
 for sent in sents:
     dg = DepGraph(client, sent)
