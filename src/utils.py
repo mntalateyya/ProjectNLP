@@ -69,24 +69,31 @@ class Document(object):
 			questions.append( questionGenerationFunction(matchings) )
 		return questions
 
-# ------- example --------
+# ------- example -------- #
 
 if __name__ == "__main__":
-	# Sample Template:
+	# ------- Sample Template -------  #
 	# What [subject] [past verb] about ?
-	text = "Director Michel Hazanavicius had been fantasizing about making a silent film"
-	def exampleFn(x):
-		for matching in x:
-			# check if there was a good match
+	# -------------------------------  #
+	text = "Hazanavicius fantasized about making a silent film"
+	
+	def WhatAboutQFn(matchings):
+		questions = []
+		for matching in matchings:
+			# check if there was a match, and generate the question accordingly.
 			_subject, _verb, _object = matching['1']['text'], matching['2']['text'] , matching['3']['text']
 			question = "What {} {} about?".format(_subject, _verb)
 			answer   = _object
-			print(question, '- answer:',answer)
+			questions.append(question)
+		return (" ".join(questions))
 
-	docObject = Document((text).encode('ascii', 'ignore'))
+	# Read the document as ASCII text, and ignore unicode symbols
+	sampleDocObj = Document(text)
 
 	# Match template pattren to sentence -> generate question accordingly
-	# notice: + means one or more, * means 0 or more
-	# pattren: proper_noun+ ... verb in the past ... object+ 
-	template0 = (r'([{ tag:"NNP" }]) []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])', exampleFn)
-	x = docObject.generateQuestionsFromPattrens([template0])
+	# Notice: + means one or more, * means zero or more
+	# pattren: proper_noun+ ... verb in the past tense ... object+ 
+	sampleTemplate = (r'([{ tag:"NNP" }]) []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])', WhatAboutQFn)
+
+	# output: ['What Hazanavicius fantasized about?']
+	print(sampleDocObj.generateQuestionsFromPattrens([sampleTemplate]))
