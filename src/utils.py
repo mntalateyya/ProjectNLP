@@ -17,7 +17,7 @@ class Document(object):
 		self.nlp = StanfordCoreNLP('http://localhost:9000')
 
 		# Get the sentences from the document string and store them
-		self.sentences = self.setSentences(text)
+		self.sentences = self.setSentences()
 
 	# get stored sentences of the text document
 	# output: list of sentences
@@ -26,7 +26,7 @@ class Document(object):
 
 	# set sentences from the text document
 	# Notice: supposed to be called once, in initilization
-	def setSentences(self, text):
+	def setSentences(self):
 		
 		sentences = []
 
@@ -60,26 +60,33 @@ class Document(object):
 		return matchings
 
 
+	# Match templates aganist sentences and apply functions to get the questions
+	# input: list of tuples (pattren:string, fn(input): function that takes the matching, then generate the question)
+	def generateQuestionsFromPattrens(self, templates):
+		questions = []
+		for (pattren, questionGenerationFunction) in templates:
+			matchings = self.matchTokensRegex(pattren)
+			questions.append( questionGenerationFunction(matchings) )
+		return questions
+
 # ------- example --------
 
 if __name__ == "__main__":
-	text = 'Michel Hazanavicius fantasized about making a silent film'
+	# Sample Template:
+	# What [subject] [past verb] about ?
+	text = "Director Michel Hazanavicius had been fantasizing about making a silent film"
+	def exampleFn(x):
+		for matching in x:
+			# check if there was a good match
+			_subject, _verb, _object = matching['1']['text'], matching['2']['text'] , matching['3']['text']
+			question = "What {} {} about?".format(_subject, _verb)
+			answer   = _object
+			print(question, '- answer:',answer)
 
-	docObject = Document(text)
-
-	print(docObject.getSentences())
-
+	docObject = Document((text).encode('ascii', 'ignore'))
 
 	# Match template pattren to sentence -> generate question accordingly
 	# notice: + means one or more, * means 0 or more
 	# pattren: proper_noun+ ... verb in the past ... object+ 
-	x = docObject.matchTokensRegex(r'([{ tag:"NNP" }])+ []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])')
-
-	# Sample Template:
-	# What [subject] [past verb] about ?
-	for matching in x:
-		# check if there was a good match
-		_subject, _verb, _object = matching['1']['text'], matching['2']['text'] , matching['3']['text']
-		question = "What {} {} about?".format(_subject, _verb)
-		answer   = _object
-		print(question, '- answer:',answer)
+	template0 = (r'([{ tag:"NNP" }]) []{0,5} ([{ tag:"VBD" }]) []{0,5} ([{ tag:"NN" }])', exampleFn)
+	x = docObject.generateQuestionsFromPattrens([template0])
