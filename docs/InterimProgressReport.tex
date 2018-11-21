@@ -68,11 +68,31 @@
     level but we will expand it to match recursively on the parse tree.
 
     \section{Results}
-    We tested out implementation with an actual template and document. Figure <insert ref> shows some of
+    We tested out implementation with an actual template and document. The listing below shows some of
     the results.
 
-    \begin{figure}
-        \code{../src/test.py}
-    \end{figure}
+    \section{The Pipeline}
+    \subsection{ask}
+    We split the document to sentences using class \texttt{Document} which uses CoreNLP's
+    \texttt{ssplit}. Then randomly sample sentences with bias to increase probability of important
+    sentences (e.g. 1st sentences in paragraphs).Then we  search for our templates in the sentence
+    and output the resulting question if found.
+
+    \subsection{answer} Given a question we first filter the sentences that have very low
+    similarity. Then for the remaining sentences we search for a node that has the same dependency
+    path as the question word (When, What, ..) and output the text under that node. If not found, we
+    fall to a fall-back method that just outputs the sentence with maximum matching. 
+
+\code{../src/test.py}
+Who won Cups? Donovan\\
+Who reached quarter-finals? team\\
+Who raised him? mother\\
+Who allowed him? mother\\
+Who attended School? He\\
+Who attended Academy? Donovan\\
+Who signed contract? Earthquakes\\
+Who had trouble? Donovan\\
+Who had success? Donovan\\
+Who scored goals?...
     
 \end{document}
