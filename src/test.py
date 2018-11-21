@@ -6,7 +6,7 @@ from pycorenlp import StanfordCoreNLP
 
 client = StanfordCoreNLP('http://localhost:9000')
 
-with open('/home/mnur/Downloads/Project-Package/data/set1/a2.txt') as f:
+with open('../data/set1/a2.txt') as f:
     doc = Document(f.read())
 print(len(doc.sentences))
 for sent in doc.getSentences():
@@ -14,4 +14,4 @@ for sent in doc.getSentences():
     res = dg.match('VBD', [('nsubj', None), ('dobj', None)])
     if res:
         verb, subj, obj = res
-        #print('Who {} {}? {}'.format(dg.tokens[verb], dg.tokens[obj], dg.tokens[subj]))
+        print('Who {} {}? {}'.format(dg.tokens[verb], dg.tokens[obj], dg.tokens[subj]))

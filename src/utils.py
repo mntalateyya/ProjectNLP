@@ -31,7 +31,7 @@ class Document(object):
 		sentences = []
 
 		# Split the text document into sentences (possible annotators: 'tokenize,ssplit,pos,lemma,ner,parse,dcoref')
-		output = self.nlp.annotate(text, properties={
+		output = self.nlp.annotate(self.string, properties={
 		  'annotators': 'ssplit',
 		  'outputFormat': 'json'
 		 })
