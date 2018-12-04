@@ -14,6 +14,7 @@ with open('data/set1/a2.txt') as f:
             }))
 '''
 # from https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string
+# required if coref used because it returns true and false in lowercase
 rep = {"true": "True", "false": "False"} # define desired replacements here
 # use these three lines to do the replacement
 rep = { re.escape(k): v for k, v in rep.items() }
@@ -21,7 +22,8 @@ pattern = re.compile("|".join(rep.keys()))
 corenlp_out = eval(pattern.sub(lambda m: rep[re.escape(m.group(0))], corenlp_out))
 
 pp = pprint.PrettyPrinter(indent=4)
-pp.pprint(corenlp_out['corefs'])'''
+pp.pprint(corenlp_out['corefs'])
+'''
 
 for sent in corenlp_out['sentences']:
     dg = SentenceGraph(sent)
