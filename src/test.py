@@ -4,6 +4,7 @@ from sgraph import SentenceGraph
 from pycorenlp import StanfordCoreNLP
 from patterns import patterns
 import re, pprint
+from pattern.en import conjugate
 
 client = StanfordCoreNLP('http://localhost:9000')
 
@@ -29,11 +30,26 @@ for sent in corenlp_out['sentences']:
     dg = SentenceGraph(sent)
     res = dg.match(patterns[0])
     if res:
-        print('Q: Who is ({})? A: ({})'.format(
+        print('Original: {}'.format(' '.join(map(lambda i: dg.tokens[i]['word'], range(1, dg.length)))))
+        print('Q1: Who is ({})? A: ({})'.format(
             dg.subtree(res['subject']), 
             ' '.join(map(lambda i: dg.tokens[i]['word'], range(res['det'], res['pred']+1)))))
+        print()
     res = dg.match(patterns[1])
     if res:
-        print('Q: Who is ({})? A: ({})'.format(
+        print('Original: {}'.format(' '.join(map(lambda i: dg.tokens[i]['word'], range(1, dg.length)))))
+        print('Q2: Who ({})? A: ({})'.format(
             dg.subtree(res['pred']).replace(dg.subtree(res['subject']), ''),
             dg.subtree(res['subject'])))
+        print()
+    res = dg.match(patterns[2])
+    if res is not None and res['time'] < res['verb']:
+        print('Original: {}'.format(' '.join(map(lambda i: dg.tokens[i]['word'], range(1, dg.length)))))
+        print('Q3: When did ({}) ({}) ({})? A: ({})'.format(
+            dg.subtree(res['subject']),
+            conjugate(dg.tokens[res['verb']]['word'], 'inf'),
+            ' '.join(map(lambda i: dg.tokens[i]['word'], range(res['verb']+1, dg.length-1))),
+            dg.subtree(res['time'])
+        ))
+        print()
+        
