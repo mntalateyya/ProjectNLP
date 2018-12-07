@@ -1,7 +1,9 @@
 from pattern.en import conjugate
 '''
-List of pattern-template tuples. A pattern matches nodes in the dependency graph
-and is a dictionary that has zero or more of the following 4 keys:
+List of pattern-template tuples. 
+
+A pattern matches nodes in the dependency graph and is a dictionary that has zero or more
+of the following 4 keys:
 - name: if successfully matched the returned dictionary will have this as a key mapping
         to the index of this node.
 - attributes: a dictionary of attributes this node has to have. these attributes are the
@@ -13,7 +15,13 @@ and is a dictionary that has zero or more of the following 4 keys:
         of the relation. This a dictionary where keys are relations and values are 
         recursive patterns.
 - 'has_not': a list of relations this node should not have.
+
+a template is a function that takes the SentenceGraph object and result of matching and generates
+a question-answer pair of strings. The answer is only for our testing so return an empty string if
+you wish.
 '''
+
+# TODO improve patterns 0, 1 with NER
 patterns = [
     ({
         'name': 'pred',
@@ -30,7 +38,7 @@ patterns = [
     },
     lambda sg, res: (
         'Who is {}?'.format(sg.subtree(res['subject'])),
-        'A: {}'.format(' '.join(
+        '{}'.format(' '.join(
             map(lambda i: sg.tokens[i]['word'], range(res['det'], res['pred']+1))))
     )),
 
@@ -49,7 +57,7 @@ patterns = [
     lambda sg, res: (
         'Who {}?'.format(sg.subtree(res['pred']).replace(
             sg.subtree(res['subject']), '')),
-        'A: {}'.format(sg.subtree(res['subject']))
+        '{}'.format(sg.subtree(res['subject']))
     )),
 
     ({
@@ -67,7 +75,28 @@ patterns = [
             conjugate(sg.tokens[res['verb']]['word'], 'inf'),
             ' '.join(map(lambda i: sg.tokens[i]['word'], range(
                 res['verb']+1, sg.length-1)))
-        ) if res['time'] < res['verb'] else '',
-        'A: {}'.format(sg.subtree(res['time']))
+        ) if sg.subtree_start(res['time']) == 1 else '',
+        '{}'.format(sg.subtree(res['time']))
+    )),
+
+    # FIXME catched verbs not modified with in, e.g. 
+    # In 2005 , after six years with the club , the majority of which were spent on 
+    # loan at the San Jose Earthquakes , Donovan moved tothe Los Angeles Galaxy .
+    ({
+        'name': 'verb',
+        'attributes': {'pos': 'VBN'},
+        'has_deps': {
+            'nmod:in': {'name': 'time'},
+            'auxpass': {'name': 'aux'},
+            'nsubjpass': {'name': 'subject', 'attributes': {'pos': '!PRP'}}
+        },
+    },
+    lambda sg, res: (
+        'When {} {} {}?'.format(
+            sg.subtree(res['aux']),
+            sg.subtree(res['subject']),
+            ' '.join(map(lambda i: sg.tokens[i]['word'], range(res['verb'], sg.length-1)))
+        ) if sg.subtree_start(res['time']) == 1 else '',
+        '{}'.format(sg.subtree(res['time']))
     )),
 ]

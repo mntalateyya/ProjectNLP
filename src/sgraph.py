@@ -41,7 +41,15 @@ class SentenceGraph:
         self.visited = [False for i in range(self.length)]
         low, high = self.minmax(root)
         return ' '.join(map(lambda i: self.tokens[i]['word'], range(low, high+1)))
+
+    def subtree_start(self, root: int) -> int:
+        self.visited = [False for i in range(self.length)]
+        return self.minmax(root)[0]
     
+    def subtree_end(self, root: int) -> int:
+        self.visited = [False for i in range(self.length)]
+        return self.minmax(root)[1]
+
     def minmax(self, root: int) -> Tuple[int, int] :
         self.visited[root] = True
         minimum, maximum = root, root
