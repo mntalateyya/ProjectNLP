@@ -61,13 +61,13 @@ patterns = [
         },
         'has_not': ['cc']
     },
-    lambda sg, res: ( # FIXME, ensure in <time> occurs before subject
+    lambda sg, res: (
         'When did {} {} {}?'.format(
             sg.subtree(res['subject']),
             conjugate(sg.tokens[res['verb']]['word'], 'inf'),
             ' '.join(map(lambda i: sg.tokens[i]['word'], range(
                 res['verb']+1, sg.length-1)))
-        ),
+        ) if res['time'] < res['verb'] else '',
         'A: {}'.format(sg.subtree(res['time']))
     )),
 ]

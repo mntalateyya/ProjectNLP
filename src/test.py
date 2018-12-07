@@ -30,6 +30,8 @@ for sent in corenlp_out['sentences']:
     for i, (pat, tmpl) in enumerate(patterns):
         res = sg.match(pat)
         if res is not None:
-            print('Original: {}'.format(' '.join(map(lambda i: sg.tokens[i]['word'], range(1, sg.length)))))
-            print('Q: {}'.format(tmpl(sg, res)))
-            print()
+            q = tmpl(sg, res)
+            if q[0]:
+                print('Original:', ' '.join(map(lambda i: sg.tokens[i]['word'], range(1, sg.length))))
+                print('Q[{}]:'.format(i), q[0], '\n', 'A:', q[1])
+                print()
