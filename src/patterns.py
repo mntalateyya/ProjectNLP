@@ -20,7 +20,19 @@ a question-answer pair of strings. The answer is only for our testing so return 
 you wish.
 '''
 
-# TODO improve patterns 0, 1 with NER
+def bc_pattern(sg, res): 
+    v_tok = sg.tokens[res['verb']]
+    if v_tok['pos'] == 'VBN':
+        aux = sg.tokens[res['aux']]['word']
+    else:
+        aux = { 'VBD': 'did', 'VBP': 'do', 'VBZ': 'does' }[v_tok['pos']]
+    verb = v_tok['word'] if v_tok['pos'] == 'VBN' else conjugate(v_tok['word'], 'inf')
+    clause = ' '.join(map(lambda i: sg.tokens[i]['word'], range(res['verb']+1, sg.subtree_start(res['reason']))))
+    return (
+        'Why {} {} {} {}?'.format(aux, sg.subtree(res['subject']), verb, clause),
+        '{}'.format(sg.subtree(res['reason']))
+    )
+
 patterns = [
     ({
         'name': 'pred',
@@ -46,6 +58,25 @@ patterns = [
         'has_deps': {
             'det': {
                 'name': 'det',
+                'attributes': {'word': 'a'}},
+            'cop': {'attributes': {'word': 'is'}},
+            'nsubj': {
+                'name': 'subject',
+                'attributes': {'ner': '! PERSON | O'}
+            },
+        }
+    },
+    lambda sg, res: (
+        'What is {}?'.format(sg.subtree(res['subject'])),
+        '{}'.format(' '.join(
+            map(lambda i: sg.tokens[i]['word'], range(res['det'], res['pred']+1))))
+    )),
+
+    ({
+        'name': 'pred',
+        'has_deps': {
+            'det': {
+                'name': 'det',
                 'attributes': {'word': 'the'}},
             'cop': {'attributes': {'word': 'is'}},
             'nsubj': {
@@ -56,6 +87,25 @@ patterns = [
     },
     lambda sg, res: (
         'Who {}?'.format(sg.subtree(res['pred']).replace(
+            sg.subtree(res['subject']), '')),
+        '{}'.format(sg.subtree(res['subject']))
+    )),
+
+    ({
+        'name': 'pred',
+        'has_deps': {
+            'det': {
+                'name': 'det',
+                'attributes': {'word': 'the'}},
+            'cop': {'attributes': {'word': 'is'}},
+            'nsubj': {
+                'name': 'subject',
+                'attributes': {'ner': '! PERSON | O'}
+            },
+        }
+    },
+    lambda sg, res: (
+        'What {}?'.format(sg.subtree(res['pred']).replace(
             sg.subtree(res['subject']), '')),
         '{}'.format(sg.subtree(res['subject']))
     )),
@@ -100,4 +150,27 @@ patterns = [
         ) if sg.subtree_start(res['time']) == 1 else '',
         '{}'.format(sg.subtree(res['time']))
     )),
+
+    ({
+        'name': 'verb',
+        'attributes': { 'pos': 'VBD | VBP | VBZ' },
+        'has_deps': {
+            'nsubj': { 'name': 'subject' },
+            'advcl:because': { 'name': 'reason' }
+        }
+    },
+    lambda sg, res: bc_pattern(sg, res)
+    ),
+
+    ({
+        'name': 'verb',
+        'attributes': { 'pos': 'VBN' },
+        'has_deps': {
+            'nsubjpass': { 'name': 'subject' },
+            'advcl:because': { 'name': 'reason' },
+            'auxpass': { 'name': 'aux' }
+        }
+    },
+    lambda sg, res: bc_pattern(sg, res)
+    )
 ]
