@@ -2,6 +2,7 @@
 launch.json
 *.pyc
 /docs/*
+/.vscode
 !/docs/*.tex
 !/docs/*.pdf
 !/docs/*.doc
