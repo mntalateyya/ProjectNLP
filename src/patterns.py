@@ -8,9 +8,8 @@ of the following 4 keys:
         to the index of this node.
 - attributes: a dictionary of attributes this node has to have. these attributes are the
         token attrubutes in CoreNLP output. e.g. `'attributes': { 'pos': 'NNP' }`. The attribute
-        value can also be '!value' in which case, it matches anything but value and can also be
-        a set (or list, prefer set), in which case it matches if one of
-        the values match. `'attributes': { 'pos': { 'VBD', 'VBN' }}` (!value not permitted here).
+        value is of the form `var1 | ... | varn` which matches if any of the varients match.
+        Alternatively, it can be `! var1 | ... | varn` which matches if none of the varients match.
 - 'has_deps': depndency relations this node should have, where this node is the governor
         of the relation. This a dictionary where keys are relations and values are 
         recursive patterns.
@@ -32,7 +31,7 @@ patterns = [
             'cop': {'attributes': {'word': 'is'}},
             'nsubj': {
                 'name': 'subject',
-                'attributes': {'pos': 'NNP'}
+                'attributes': {'ner': 'PERSON'}
             },
         }
     },
@@ -50,7 +49,8 @@ patterns = [
                 'attributes': {'word': 'the'}},
             'cop': {'attributes': {'word': 'is'}},
             'nsubj': {
-                'name': 'subject'
+                'name': 'subject',
+                'attributes': {'ner': 'PERSON'}
             },
         }
     },
@@ -64,7 +64,7 @@ patterns = [
         'name': 'verb',
         'attributes': {'pos': 'VBD'},
         'has_deps': {
-            'nmod:in': {'name': 'time'},
+            'nmod:in': {'name': 'time', 'attributes': {'ner': 'DATE'}},
             'nsubj': {'name': 'subject', 'attributes': {'pos': '!PRP'}}
         },
         'has_not': ['cc']
@@ -82,13 +82,14 @@ patterns = [
     # FIXME catched verbs not modified with in, e.g. 
     # In 2005 , after six years with the club , the majority of which were spent on 
     # loan at the San Jose Earthquakes , Donovan moved tothe Los Angeles Galaxy .
+    # NOTE the error is actually caused by parse error by CoreNLP.
     ({
         'name': 'verb',
-        'attributes': {'pos': 'VBN'},
+        'attributes': { 'pos': 'VBN' },
         'has_deps': {
-            'nmod:in': {'name': 'time'},
-            'auxpass': {'name': 'aux'},
-            'nsubjpass': {'name': 'subject', 'attributes': {'pos': '!PRP'}}
+            'nmod:in': { 'name': 'time', 'attributes': {'ner': 'DATE'}},
+            'auxpass': { 'name': 'aux' },
+            'nsubjpass': { 'name': 'subject', 'attributes': { 'pos': '!PRP' }}
         },
     },
     lambda sg, res: (

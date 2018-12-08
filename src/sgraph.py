@@ -94,22 +94,19 @@ class SentenceGraph:
                         return
             return result
     
-    def attr_match(self, node: int, attributes: Dict[str, Union[str, Iterable]]) -> bool:
+    def attr_match(self, node: int, attributes: Dict[str, str]) -> bool:
         for attr, val in attributes.items():
             node_attr = self.tokens[node][attr]
-            if type(val) == str:
-                if val[0]=='!':
-                    if node_attr == val[1:]:
-                        return False
-                elif node_attr != val:
-                    return False
-            elif isinstance(val, Iterable):
-                match = False
-                for choice in val:
+            if val[0] == '!':
+                choices = map(lambda s: s.strip(), val[1:].split('|'))
+                for choice in choices:
                     if node_attr == choice:
-                        match = True
-                if not match:
-                    return False
+                        return False
+                return True
             else:
-                raise TypeError
+                choices = map(lambda s: s.strip(), val.split('|'))
+                for choice in choices:
+                    if node_attr == choice:
+                        return True
+                return False
         return True
