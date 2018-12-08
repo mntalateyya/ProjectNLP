@@ -10,21 +10,29 @@ client = StanfordCoreNLP('http://localhost:9000')
 
 for fname in argv[1:]:
     with open(fname) as f:
-        corenlp_out = eval(client.annotate(f.read(), properties={
-                    'annotators': 'depparse, pos, lemma, ner    ',
-                    'corenlp_outputFormat': 'json'
-                }))
+        print('GENERATING QUESTIONS FROM {}'.format(fname))
+        line = f.readline()
+        while line:
+            if len(line) < 60:
+                line = f.readline()
+                continue
 
-    for sent in corenlp_out['sentences']:
-        sg = SentenceGraph(sent)
-        for i, (pat, tmpl) in enumerate(patterns):
-            res = sg.match(pat)
-            if res is not None:
-                q = tmpl(sg, res)
-                if q[0]:
-                    print('Original:', ' '.join(map(lambda i: sg.tokens[i]['word'], range(1, sg.length))))
-                    print('Q[{}]:'.format(i), q[0], '\n', 'A:', q[1])
-                    print()
+            corenlp_out = eval(client.annotate(line, properties={
+                        'annotators': 'depparse, pos, lemma, ner    ',
+                    }))
+
+            for sent in corenlp_out['sentences']:
+                sg = SentenceGraph(sent)
+                for i, (pat, tmpl) in enumerate(patterns):
+                    res = sg.match(pat)
+                    if res is not None:
+                        q = tmpl(sg, res)
+                        if q[0]:
+                            print('Original:', ' '.join(map(lambda i: sg.tokens[i]['word'], range(1, sg.length))))
+                            print('Q[{}]:'.format(i), q[0], '\n', 'A:', q[1])
+                            print()
+
+            line = f.readline()
 
 '''
 # from https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string
