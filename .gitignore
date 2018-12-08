@@ -1,6 +1,7 @@
 *.swp
 launch.json
 *.pyc
+src/debug_input.txt
 /docs/*
 /.vscode
 !/docs/*.tex
