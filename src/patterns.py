@@ -17,7 +17,8 @@ of the following 4 keys:
 
 a template is a function that takes the SentenceGraph object and result of matching and generates
 a question-answer pair of strings. The answer is only for our testing so return an empty string if
-you wish.
+you wish. For simple templates, they are given as a lambda, while complex ones are factored into
+named functions.
 '''
 
 def bc_pattern(sg, res): 
@@ -33,7 +34,21 @@ def bc_pattern(sg, res):
         '{}'.format(sg.subtree(res['reason']))
     )
 
+def ner_did(sg, res):
+    wh = 'Who' if sg.tokens[res['subject']]['ner'] == 'PERSON' else 'What'
+    return (
+        '{}?'.format(sg.subtree(res['verb']).replace(sg.subtree(res['subject']), wh)) if 
+            sg.subtree_start(res['subject']) == 1 else '',
+        sg.subtree(res['subject'])
+    )
+
+
+def wh_word(ner):
+    ''' decide between Who and What '''
+    return 'Who' if ner == 'PERSON' else 'What'
+
 patterns = [
+    # <Entity> is a <predicate>
     ({
         'name': 'pred',
         'has_deps': {
@@ -43,35 +58,20 @@ patterns = [
             'cop': {'attributes': {'word': 'is'}},
             'nsubj': {
                 'name': 'subject',
-                'attributes': {'ner': 'PERSON'}
+                'attributes': {'ner': '!O'}
             },
         }
     },
     lambda sg, res: (
-        'Who is {}?'.format(sg.subtree(res['subject'])),
+        '{} is {}?'.format(
+            wh_word(sg.tokens[res['subject']]['ner']),
+            sg.subtree(res['subject'])
+        ),
         '{}'.format(' '.join(
             map(lambda i: sg.tokens[i]['word'], range(res['det'], res['pred']+1))))
     )),
 
-    ({
-        'name': 'pred',
-        'has_deps': {
-            'det': {
-                'name': 'det',
-                'attributes': {'word': 'a'}},
-            'cop': {'attributes': {'word': 'is'}},
-            'nsubj': {
-                'name': 'subject',
-                'attributes': {'ner': '! PERSON | O'}
-            },
-        }
-    },
-    lambda sg, res: (
-        'What is {}?'.format(sg.subtree(res['subject'])),
-        '{}'.format(' '.join(
-            map(lambda i: sg.tokens[i]['word'], range(res['det'], res['pred']+1))))
-    )),
-
+    # <Entity> is the <predicate>
     ({
         'name': 'pred',
         'has_deps': {
@@ -81,32 +81,15 @@ patterns = [
             'cop': {'attributes': {'word': 'is'}},
             'nsubj': {
                 'name': 'subject',
-                'attributes': {'ner': 'PERSON'}
+                'attributes': {'ner': '!O'}
             },
         }
     },
     lambda sg, res: (
-        'Who {}?'.format(sg.subtree(res['pred']).replace(
-            sg.subtree(res['subject']), '')),
-        '{}'.format(sg.subtree(res['subject']))
-    )),
-
-    ({
-        'name': 'pred',
-        'has_deps': {
-            'det': {
-                'name': 'det',
-                'attributes': {'word': 'the'}},
-            'cop': {'attributes': {'word': 'is'}},
-            'nsubj': {
-                'name': 'subject',
-                'attributes': {'ner': '! PERSON | O'}
-            },
-        }
-    },
-    lambda sg, res: (
-        'What {}?'.format(sg.subtree(res['pred']).replace(
-            sg.subtree(res['subject']), '')),
+        '{} is {}?'.format(
+            wh_word(sg.tokens[res['subject']]['ner']),
+            ' '.join(map(lambda i: sg.tokens[i]['word'], range(res['det'], sg.subtree_end(res['pred'])+1)))
+        ),
         '{}'.format(sg.subtree(res['subject']))
     )),
 
@@ -123,9 +106,11 @@ patterns = [
         'When did {} {} {}?'.format(
             sg.subtree(res['subject']),
             conjugate(sg.tokens[res['verb']]['word'], 'inf'),
-            ' '.join(map(lambda i: sg.tokens[i]['word'], range(
-                res['verb']+1, sg.length-1)))
-        ) if sg.subtree_start(res['time']) == 1 else '',
+            ' '.join(
+                map(lambda i: sg.tokens[i]['word'], 
+                range(res['verb']+1, sg.length-1))
+            ).replace(sg.subtree(res['time']), '')
+        ),
         '{}'.format(sg.subtree(res['time']))
     )),
 
@@ -159,7 +144,7 @@ patterns = [
             'advcl:because': { 'name': 'reason' }
         }
     },
-    lambda sg, res: bc_pattern(sg, res)
+    bc_pattern
     ),
 
     ({
@@ -171,6 +156,22 @@ patterns = [
             'auxpass': { 'name': 'aux' }
         }
     },
-    lambda sg, res: bc_pattern(sg, res)
-    )
+    bc_pattern
+    ),
+
+    ({
+        'name': 'verb',
+        'attributes': { 'pos': 'VBD' },
+        'has_deps': {
+            'nsubj': { 'name': 'subject', 'attributes': { 'ner': '!O' }},
+        }
+    },
+    lambda sg, res: (
+        '{}?'.format(sg.subtree(res['verb'])
+            .replace(
+                sg.subtree(res['subject']), 
+                wh_word(sg.tokens[res['subject']]['ner'])
+            )) if sg.subtree_start(res['subject']) == 1 else '',
+        sg.subtree(res['subject'])
+    ))
 ]
