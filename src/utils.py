@@ -1,6 +1,16 @@
 from pycorenlp import StanfordCoreNLP
 import json
+from collections import Counter
 
+'''
+	This module is include utilities used throughout the project graph class.
+
+	Author: Abubaker Omer <afomer@andrew.cmu.edu> 2018
+'''
+
+# Connect to Stanford CoreNLP Server at localhost:9000
+def connectToStanfordCoreNLP():
+	return StanfordCoreNLP('http://localhost:9000')
 
 class Document(object):
 	""" 
@@ -13,8 +23,8 @@ class Document(object):
 		# Get the text document string
 		self.string = text
 
-		# Connect to Stanford CoreNLP Server at localhost:9000
-		self.nlp = StanfordCoreNLP('http://localhost:9000')
+		# Connect to Stanford CoreNLP Server
+		self.nlp = connectToStanfordCoreNLP()
 
 		# Get the sentences from the document string and store them
 		self.sentences = self.setSentences()
@@ -68,6 +78,52 @@ class Document(object):
 			matchings = self.matchTokensRegex(pattren)
 			questions.append( questionGenerationFunction(matchings) )
 		return questions
+
+
+
+# ----------- Get Tokens using StanfordNLP server ------------- #
+# notice: This function assumes the server is running at http://localhost:9000
+def getTokens(text):
+	nlp = connectToStanfordCoreNLP()
+	output = nlp.annotate(text, properties={
+		  'annotators': 'tokenize',
+		  'outputFormat': 'json'
+		 })
+
+	return map(lambda tokenInfo:tokenInfo['word'], output['tokens'])
+
+# ------------------------ #
+
+
+# ------- Maximum Matching using Bag of Words -------- #
+
+# Matching Score is calculated by comparing number of word count similarties
+# using Counter()
+def maximumMatchingSentence(inputText, sentenceList):
+	inputTextWords    = getTokens(inputText)
+	inputTextWordsDic = Counter(inputTextWords)
+
+	sentenceMatchingScoreList = []
+
+	for sentence in sentenceList:
+
+		sentenceWordsDic    = Counter(getTokens(sentence))
+		wordMatchingCounter = 0
+
+		for word in inputTextWordsDic:
+
+			if inputTextWordsDic[word] == sentenceWordsDic[word]:
+				wordMatchingCounter += 1
+
+		entry = (wordMatchingCounter, sentence)
+		sentenceMatchingScoreList.append( entry )
+
+	maximumMatchingSentence = max(sentenceMatchingScoreList)[1]
+
+	return maximumMatchingSentence
+
+# ------------------------ #
+
 
 # ------- example -------- #
 
