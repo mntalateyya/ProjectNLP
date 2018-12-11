@@ -10,36 +10,40 @@ n = int(argv[2])
 client = StanfordCoreNLP('http://localhost:9000')
 
 questions = {}
-newpar = True
+# is first sentence in paragraph, for higher ranking
+newsection = True
 
 with open(filename) as f:
     line = f.readline()
     while line:
         if (line.strip() == ''):
-            newpar = True
+            newsection = True
+        # sections are separated with empty lines
         if len(line) < 60:
             line = f.readline()
             continue
         corenlp_out = eval(client.annotate(line, properties={
                 'annotators': 'depparse, pos, lemma, ner',
             }))
-        for sent in corenlp_out['sentences']:
+        for i, sent in enumerate(corenlp_out['sentences']):
             sg = SentenceGraph(sent)
             for i, (pat, tmpl) in enumerate(patterns):
                 res = sg.match(pat)
                 if res is not None:
                     q, _ = tmpl(sg, res)
                     if q:
-                        questions[q] = 10 if newpar else 1
-        newpar = False
+                        if newsection:
+                            questions[q] = 3
+                        elif i == 0:
+                            questions[q] = 2
+                        else:
+                            questions[q] = 1
+            newsection = False
         line = f.readline()
 
-qlist = sorted(questions.items(), key=lambda item: item[1], reverse=True)
+qlist = sorted(questions.items(), key=lambda item: item[1]/len(item[0].split())**2, reverse=True)
 for i in range(min(n, len(qlist))):
-    print('[{}]- '.format(i+1), qlist[i][0])
+    print('[{}]- '.format(i+1), qlist[i][0], qlist[i][1])
 
-if n > len(qlist):
+if n > len(qlist):  
     stderr.write('\033[01;31m'+'Only {} questions were generated\n'.format(len(qlist)))
-
-
-        
