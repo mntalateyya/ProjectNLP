@@ -97,33 +97,22 @@ def getTokens(text):
 
 # ------- Maximum Matching using Bag of Words -------- #
 
-# Matching Score is calculated by comparing number of word count similarties
-# using Counter()
-def maximumMatchingSentence(inputText, sentenceList):
-	inputTextWords    = getTokens(inputText)
-	inputTextWordsDic = Counter(inputTextWords)
-
+# Matching Score is calculated by comparing number of word similarties
+# using set() operations
+# Args: inputTokensSet: set of tokens, sentenceList: list of set of tokens, each entry represents a sentence
+def maximumMatchingSentence(inputTokensSet, sentencesTokensList):
+	
 	sentenceMatchingScoreList = []
 
-	for sentence in sentenceList:
-
-		sentenceWordsDic    = Counter(getTokens(sentence))
-		wordMatchingCounter = 0
-
-		for word in inputTextWordsDic:
-
-			if inputTextWordsDic[word] == sentenceWordsDic[word]:
-				wordMatchingCounter += 1
-
-		entry = (wordMatchingCounter, sentence)
-		sentenceMatchingScoreList.append( entry )
+	for sentenceTokens in sentencesTokensList:
+		entry = (sentenceTokens.intersection(inputTokensSet), sentenceTokens)
+		sentenceMatchingScoreList.append(entry)
 
 	maximumMatchingSentence = max(sentenceMatchingScoreList)[1]
 
 	return maximumMatchingSentence
 
 # ------------------------ #
-
 
 # ------- example -------- #
 
