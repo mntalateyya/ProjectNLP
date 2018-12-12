@@ -53,22 +53,22 @@ def correfReplace(text,output):
 text = "Jack is a football player. He is the best player. He is part of the winning team."
 # output is "Jack is a football player. Jack is the best player. Jack is part of the winning team."
 
-dataf = open("../data/set1/a1.txt","r")
-data = dataf.read()
-
-datap = data.split("\n\n")
-
 
 # since text is too long, I'm giving texts in paragraphs
-for text in datap:
-  nlp = StanfordCoreNLP('http://localhost:9000')
+with open('../data/set1/a1.txt', 'r', encoding='utf-8', errors='replace') as f:
+  
+  lines = f.readlines()
+  text  = f.read()
 
-  output = nlp.annotate(text, properties={
-        'annotators': 'dcoref', 
-        'outputFormat': 'json'
-        })
+  for text in lines:
+    nlp = StanfordCoreNLP('http://localhost:9000')
 
-  print (correfReplace(data,output))
+    output = nlp.annotate(text, properties={
+          'annotators': 'dcoref', 
+          'outputFormat': 'json'
+          })
+
+    print((correfReplace(text, output)).encode('ascii', 'ignore').decode('ascii')) 
 
 ## TEST OUTPUT OF set1/a1 
 # He has also played for New England Revolution, Fulham and Tottenham Hotspur. 
