@@ -22,7 +22,7 @@ class SentenceGraph:
         '''
 
         self.length = len(corenlp_out['tokens']) + 1
-        self.tokens = [{'word': 'ROOT', 'pos': '$'}] + corenlp_out['tokens']
+        self.tokens = [{'word': '', 'pos': '$'}] + corenlp_out['tokens']
 
         self.edges_basic: List[Set[Tuple[str, int]]] = [set() for _ in range(self.length)]
         self.edges_enhanced: List[Set[Tuple[str, int]]] = [set() for _ in range(self.length)]
@@ -53,13 +53,14 @@ class SentenceGraph:
     def minmax(self, root: int) -> Tuple[int, int] :
         self.visited[root] = True
         minimum, maximum = root, root
-        for rel, child in self.edges_enhanced[root]:
+        for rel, child in self.edges_basic[root]:
             if rel not in ['acl:relcl', 'advcl', 'punct']:
-                min_, max_ = self.minmax(child)
-                if min_ < minimum:
-                    minimum = min_
-                if max_ > maximum:
-                    maximum = max_
+                if not self.visited[child]:
+                    min_, max_ = self.minmax(child)
+                    if min_ < minimum:
+                        minimum = min_
+                    if max_ > maximum:
+                        maximum = max_
         return minimum, maximum
 
     def find_relation(self, root: int, matcher: Dict[str, Any]) -> Optional[Dict[str, int]]:

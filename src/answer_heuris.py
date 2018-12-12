@@ -28,131 +28,119 @@ def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], re
     }
     pat2[has_deps].update({ 'nsubj': { name: 'subject' } }) # answer
     
+    cop = question.tokens[res['cop']]['word']
+
     for sent in sentences:
         res = sent.match(pat1)
         if res:
-            return sent.subtree(res['pred']).replace(sent.subtree(res['subject']), '')
+            return (sent.subtree(res['pred'])
+                .replace(sent.subtree(res['subject']), '')
+                .replace(cop, '', 1))
         res = sent.match(pat2)
         if res:
             return sent.subtree(res['subject'])
 
 def who_did_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int], rel: str):
-    pat = {
+    pats = [{
         attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
         has_deps: {
             rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
-            for rel, idx in question.edges_enhanced[res['root']] if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj']
+            for rel, idx in question.edges_enhanced[res['root']] 
+            if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj', 'amod', 'advmod']
         }
-    }
+    }]
     if rel == 'nmod':
         rel += ':{}'.format(question.tokens[res['prep']]['lemma'])
-    pat[has_deps].update({rel: {'name': 'subject' }})
+    pats[0][has_deps].update({rel: {'name': 'subject' }})
 
-    pat2 = deepcopy(pat)
+    pat2 = deepcopy(pats[0])
     pat2[has_deps].pop(rel)
     pred_dep = {'nsubj': 'csubj', 'nsubjpass': 'csubjpass', 'dobj': 'ccomp', 'iobj': 'ccomp'}
     pat2[has_deps].update({pred_dep[rel]: {'name': 'subject' }})
-
-    for sent in sentences:
-        res = sent.match(pat)
-        if res:
-            return sent.subtree(res['subject'])
-        res = sent.match(pat2)
-        if res:
-            return sent.subtree(res['subject'])
-
-
+    pats.append(pat2)
     
+    for sent in sentences:
+        for pat in pats:
+            res = sent.match(pat)
+            if res:
+                return sent.subtree(res['subject'])
 
 def when_where_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
-    0
+    pats = [
+        {
+            attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
+            has_deps: {
+                **{
+                    rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
+                    for rel, idx in question.edges_enhanced[res['root']] 
+                    if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj', 'amod']
+                },
+                rel: { name: 'spacetime' },
+            }
+        } for rel in ['nmod:in', 'nmod:tmod', 'advmod'] # NOTE add others
+    ]
+    for sent in sentences:
+        for pat in pats:
+            res = sent.match(pat)
+            if res:
+                return sent.subtree(res['spacetime'])
 
 def why_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
     0
 
 patterns = [
     ({
-        attributes: {'pos': '$'},
+        attributes: {'lemma': 'who | what'},
         has_deps: {
-            'ROOT': {
-                attributes: {'lemma': 'who | what'},
-                has_deps: {
-                    'cop': {},
-                    'nsubj': {name: 'subject'}
-                }
-            }
+            'cop': { name: 'cop' },
+            'nsubj': {name: 'subject'}
         }
     },
     who_is_pat
     ),
 
-    ({ # who did <sth>
-        attributes: {'pos': '$'},
+    ({
+        name: 'root',
         has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: {
-                    'nsubj': { attributes: { 'lemma': 'who | what' }}
-                }
-            }
+            'nsubj': { attributes: { 'lemma': 'who | what' }}
         }
     },
     lambda s, q, r: who_did_pat(s, q, r, 'nsubj')
     ),
 
-    ({ # who was done <sth>, e.g 
-        attributes: {'pos': '$'},
+    ({
+        name: 'root',
         has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: {
-                    'nsubjpass': { attributes: { 'lemma': 'who | what' }}
-                }
-            }
+            'nsubjpass': { attributes: { 'lemma': 'who | what' }}
         }
     },
     lambda s, q, r: who_did_pat(s, q, r, 'nsubjpass')
     ),
 
-    ({ # Who did <sth> do, e.g Who did John meet, What did John eat
-        attributes: {'pos': '$'},
+    ( {
+        name: 'root',
         has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: {
-                    'dobj': { attributes: { 'lemma': 'who | what | whom' }}
-                }
-            }
+            'dobj': { attributes: { 'lemma': 'who | what | whom' }}
         }
     },
     lambda s, q, r: who_did_pat(s, q, r, 'dobj')
     ),
 
-    ({ # Who did <sth> do, e.g Who did John meet, What did John eat
-        attributes: {'pos': '$'},
+    ({
+        name: 'root',
         has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: {
-                    'iobj': { attributes: { 'lemma': 'who | what | whom' }}
-                }
-            }
+            'iobj': { attributes: { 'lemma': 'who | what | whom' }}
         }
     },
     lambda s, q, r: who_did_pat(s, q, r, 'iobj')
     ),
 
-    ({ # Who was sth done by/with/.., e.g Who was London built by
-        attributes: {'pos': '$'},
+    ({
+        name: 'root',
         has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: {
-                    'nmod': {
-                        attributes: { 'lemma': 'who | what' },
-                        has_deps: { 'case': { name: 'prep' }}
-                    }
-                }
+            'nmod': {
+                attributes: { 'lemma': 'who | what' },
+                has_deps: { 'case': { name: 'prep' }}
             }
         }
     },
@@ -160,13 +148,8 @@ patterns = [
     ),
 
     ({
-        attributes: {'pos': '$'},
-        has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: { 'advmod': { attributes: { 'lemma': 'when | where' }}}
-            }
-        }
+        name: 'root',
+        has_deps: { 'advmod': { attributes: { 'lemma': 'when | where' }}}
     },
     when_where_pat
     ),
