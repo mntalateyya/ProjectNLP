@@ -33,17 +33,17 @@ with open(filename) as f:
                     q, _ = tmpl(sg, res)
                     if q:
                         if newsection:
-                            questions[q] = 3
+                            questions[q] = 10
                         elif i == 0:
-                            questions[q] = 2
+                            questions[q] = 5
                         else:
                             questions[q] = 1
             newsection = False
         line = f.readline()
 
-qlist = sorted(questions.items(), key=lambda item: item[1]/len(item[0].split())**2, reverse=True)
+qlist = sorted(questions.items(), key=lambda item: item[1]/len(item[0].split())**0.5, reverse=True)
 for i in range(min(n, len(qlist))):
     print('[{}]- '.format(i+1), qlist[i][0], qlist[i][1])
 
-if n > len(qlist):  
+if n > len(qlist):
     stderr.write('\033[01;31m'+'Only {} questions were generated\n'.format(len(qlist)))
