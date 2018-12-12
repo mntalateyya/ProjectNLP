@@ -3,6 +3,11 @@ from sys import argv
 from pycorenlp import StanfordCoreNLP
 from answer_heuris import answer
 from sgraph import SentenceGraph
+from maxmatch import maxmatch, sentence2bag
+
+if len(argv) < 2:
+    print('Usage python ./test_answer [file]')
+    exit(0)
 
 with open(argv[1]) as f:
     text = f.read()
@@ -35,9 +40,12 @@ parse_questions = [
         eval(client.annotate(q, properties={ 'annotators': 'depparse, lemma' }))['sentences'][0]
     ) for q in questions
 ]
+sentences_bag = list(map(lambda s: sentence2bag(s.tokens), sentences))
 
 for i, q in enumerate(parse_questions):
     ans = answer(sentences, q)
-    print(questions[i])
-    print(ans if ans else 'NOT FOUND')
+    print('Q:', questions[i])
+    
+    print('A:', maxmatch(sentences, sentences_bag, sentence2bag(q.tokens)).strip() )
+
     print()

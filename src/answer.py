@@ -25,7 +25,7 @@ sentences = list(map(SentenceGraph, sentences))
 
 sentences_bag = list(map(lambda s: sentence2bag(s.tokens), sentences))
 
-with open(argv[2]) as f:
+with open(argv[1]) as f:
     line = f.readline()
     while line:
         corenlp_out = eval(client.annotate(line, properties={
