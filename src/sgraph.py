@@ -54,7 +54,7 @@ class SentenceGraph:
         self.visited[root] = True
         minimum, maximum = root, root
         for rel, child in self.edges_enhanced[root]:
-            if rel != 'acl:relcl':
+            if rel not in ['acl:relcl', 'advcl', 'punct']:
                 min_, max_ = self.minmax(child)
                 if min_ < minimum:
                     minimum = min_
@@ -96,7 +96,7 @@ class SentenceGraph:
     
     def attr_match(self, node: int, attributes: Dict[str, str]) -> bool:
         for attr, val in attributes.items():
-            node_attr = self.tokens[node][attr]
+            node_attr = self.tokens[node].get(attr, '$')
             if val[0] == '!':
                 choices = map(lambda s: s.strip(), val[1:].split('|'))
                 for choice in choices:
