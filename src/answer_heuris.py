@@ -8,8 +8,8 @@ has_not = 'has_not'
 
 def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
     pat1 = { # Who is John? -> John is a player.
+        name: 'pred', # the answer
         has_deps: {
-            name: 'pred', # the answer
             'nsubj': {
                 name: 'subject',
                 attributes: { 'lemma': question.tokens[res['subject']]['lemma'] }
@@ -23,8 +23,9 @@ def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], re
         has_deps: {
             rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
             for rel, idx in question.edges_enhanced[res['subject']]
-        }.update({ 'nsubj': { name: 'subject' } }) # answer
+        }
     }
+    pat2[has_deps].update({ 'nsubj': { name: 'subject' } }) # answer
     
     for sent in sentences:
         res = sent.match(pat1)
@@ -45,13 +46,13 @@ def when_where_pat(sentences: List[SentenceGraph], question: List[SentenceGraph]
     0
 
 def why_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
-    if 
+    0
 
 patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 attributes: {'lemma': 'who | what'},
                 has_deps: {
                     'cop': {},
@@ -66,7 +67,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: {
                     'nsubj': { attributes: { 'lemma': 'who | what' }}
@@ -80,7 +81,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: {
                     'nsubjpasss': { attributes: { 'lemma': 'who | what' }}
@@ -94,7 +95,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: {
                     'dobj': { attributes: { 'lemma': 'who | what' }}
@@ -108,7 +109,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: {
                     'nmod': { attributes: { 'lemma': 'who | what' }}
@@ -122,7 +123,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: { 'advmod': { attributes: { 'lemma': 'when | where' }}}
             }
@@ -134,7 +135,7 @@ patterns = [
     ({
         attributes: {'pos': '$'},
         has_deps: {
-            'root': {
+            'ROOT': {
                 name: 'root',
                 has_deps: { 'advmod': { attributes: { 'lemma': 'why' }}}
             }
@@ -143,3 +144,9 @@ patterns = [
     why_pat
     ),
 ]
+
+def answer(sentences, question):
+    for pat, func in patterns:
+        res = question.match(pat)
+        if res is not None:
+            return func(sentences, question, res)
