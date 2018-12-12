@@ -7,19 +7,23 @@ of the following 4 keys:
 - name: if successfully matched the returned dictionary will have this as a key mapping
         to the index of this node.
 - attributes: a dictionary of attributes this node has to have. these attributes are the
-        token attrubutes in CoreNLP output. e.g. `'attributes': { 'pos': 'NNP' }`. The attribute
+        token attrubutes in CoreNLP output. e.g. `attributes: { 'pos': 'NNP' }`. The attribute
         value is of the form `var1 | ... | varn` which matches if any of the varients match.
         Alternatively, it can be `! var1 | ... | varn` which matches if none of the varients match.
-- 'has_deps': depndency relations this node should have, where this node is the governor
+- has_deps: depndency relations this node should have, where this node is the governor
         of the relation. This a dictionary where keys are relations and values are 
         recursive patterns.
-- 'has_not': a list of relations this node should not have.
+- has_not: a list of relations this node should not have.
 
 a template is a function that takes the SentenceGraph object and result of matching and generates
 a question-answer pair of strings. The answer is only for our testing so return an empty string if
 you wish. For simple templates, they are given as a lambda, while complex ones are factored into
 named functions.
 '''
+name = 'name'
+attributes = 'attributes'
+has_deps = 'has_deps'
+has_not = 'has_not'
 
 def bc_pattern(sg, res): 
     v_tok = sg.tokens[res['verb']]
@@ -50,15 +54,15 @@ def wh_word(ner):
 patterns = [
     # <Entity> is a <predicate>
     ({
-        'name': 'pred',
-        'has_deps': {
+        name: 'pred',
+        has_deps: {
             'det': {
-                'name': 'det',
-                'attributes': {'word': 'a'}},
-            'cop': {'attributes': {'word': 'is'}},
+                name: 'det',
+                attributes: {'word': 'a'}},
+            'cop': {attributes: {'word': 'is'}},
             'nsubj': {
-                'name': 'subject',
-                'attributes': {'ner': '!O'}
+                name: 'subject',
+                attributes: {'ner': '!O'}
             },
         }
     },
@@ -73,15 +77,15 @@ patterns = [
 
     # <Entity> is the <predicate>
     ({
-        'name': 'pred',
-        'has_deps': {
+        name: 'pred',
+        has_deps: {
             'det': {
-                'name': 'det',
-                'attributes': {'word': 'the'}},
-            'cop': {'attributes': {'word': 'is'}},
+                name: 'det',
+                attributes: {'word': 'the'}},
+            'cop': {attributes: {'word': 'is'}},
             'nsubj': {
-                'name': 'subject',
-                'attributes': {'ner': '!O'}
+                name: 'subject',
+                attributes: {'ner': '!O'}
             },
         }
     },
@@ -94,13 +98,13 @@ patterns = [
     )),
 
     ({
-        'name': 'verb',
-        'attributes': {'pos': 'VBD'},
-        'has_deps': {
-            'nmod:in': {'name': 'time', 'attributes': {'ner': 'DATE'}},
-            'nsubj': {'name': 'subject', 'attributes': {'pos': '!PRP'}}
+        name: 'verb',
+        attributes: {'pos': 'VBD'},
+        has_deps: {
+            'nmod:in': {name: 'time', attributes: {'ner': 'DATE'}},
+            'nsubj': {name: 'subject', attributes: {'pos': '!PRP'}}
         },
-        'has_not': ['cc']
+        has_not: ['cc']
     },
     lambda sg, res: (
         'When did {} {} {}?'.format(
@@ -119,12 +123,12 @@ patterns = [
     # loan at the San Jose Earthquakes , Donovan moved tothe Los Angeles Galaxy .
     # NOTE the error is actually caused by parse error by CoreNLP.
     ({
-        'name': 'verb',
-        'attributes': { 'pos': 'VBN' },
-        'has_deps': {
-            'nmod:in': { 'name': 'time', 'attributes': {'ner': 'DATE'}},
-            'auxpass': { 'name': 'aux' },
-            'nsubjpass': { 'name': 'subject', 'attributes': { 'pos': '!PRP' }}
+        name: 'verb',
+        attributes: { 'pos': 'VBN' },
+        has_deps: {
+            'nmod:in': { name: 'time', attributes: {'ner': 'DATE'}},
+            'auxpass': { name: 'aux' },
+            'nsubjpass': { name: 'subject', attributes: { 'pos': '!PRP' }}
         },
     },
     lambda sg, res: (
@@ -137,33 +141,33 @@ patterns = [
     )),
 
     ({
-        'name': 'verb',
-        'attributes': { 'pos': 'VBD | VBP | VBZ' },
-        'has_deps': {
-            'nsubj': { 'name': 'subject' },
-            'advcl:because': { 'name': 'reason' }
+        name: 'verb',
+        attributes: { 'pos': 'VBD | VBP | VBZ' },
+        has_deps: {
+            'nsubj': { name: 'subject' },
+            'advcl:because': { name: 'reason' }
         }
     },
     bc_pattern
     ),
 
     ({
-        'name': 'verb',
-        'attributes': { 'pos': 'VBN' },
-        'has_deps': {
-            'nsubjpass': { 'name': 'subject' },
-            'advcl:because': { 'name': 'reason' },
-            'auxpass': { 'name': 'aux' }
+        name: 'verb',
+        attributes: { 'pos': 'VBN' },
+        has_deps: {
+            'nsubjpass': { name: 'subject' },
+            'advcl:because': { name: 'reason' },
+            'auxpass': { name: 'aux' }
         }
     },
     bc_pattern
     ),
 
     ({
-        'name': 'verb',
-        'attributes': { 'pos': 'VBD' },
-        'has_deps': {
-            'nsubj': { 'name': 'subject', 'attributes': { 'ner': '!O' }},
+        name: 'verb',
+        attributes: { 'pos': 'VBD' },
+        has_deps: {
+            'nsubj': { name: 'subject', attributes: { 'ner': '!O' }},
         }
     },
     lambda sg, res: (
