@@ -104,11 +104,12 @@ def maximumMatchingSentence(inputTokensSet, sentencesTokensList):
 	
 	sentenceMatchingScoreList = []
 
-	for sentenceTokens in sentencesTokensList:
-		entry = (sentenceTokens.intersection(inputTokensSet), sentenceTokens)
+	for sentenceTokensIndex in range(len(sentencesTokensList)):
+		sentenceTokens = sentencesTokensList[sentenceTokensIndex]
+		entry = (sentenceTokens.intersection(inputTokensSet), sentenceTokens, sentenceTokensIndex)
 		sentenceMatchingScoreList.append(entry)
 
-	maximumMatchingSentence = max(sentenceMatchingScoreList)[1]
+	maximumMatchingSentence = max(sentenceMatchingScoreList)[2]
 
 	return maximumMatchingSentence
 
