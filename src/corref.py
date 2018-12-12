@@ -3,7 +3,7 @@ import json
 
 # this function finds correference resolution of a text and replaces 
 # any entity that is a pronoun with its reference
-def correfReplace(text,output):
+def correfReplace(output):
   sentences = output['sentences']
 
   for n in output['corefs']:
@@ -73,7 +73,7 @@ for text in datap:
         'outputFormat': 'json'
         })
 
-  print (correfReplace(data,output))
+  print (correfReplace(output))
 
 ## TEST OUTPUT OF set1/a1 
 #
