@@ -5,6 +5,7 @@
 \usepackage{unicode-math}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{listings}
+\usepackage{indentfirst}
 
 \title{A system for question and answer generations}
 \author{Haya Al-Kuwari, Akhyar Kamili, Mohammed Nurul Hoque, Abubaker Omar}
@@ -20,20 +21,23 @@
     \end{abstract}        
     \section{Introduction}
     \section{Usage}
+    \noindent You can do do any of the below functions using a document that you provide: 
+    \begin{itemize}
+        \item question generating
+        \item question answering
+    \end{itemize}
         \subsection{Generating questions from a document}
-        You can generate a question using a document using command line: 
-        \begin{verbatim}
-        $ ./ask document.txt n 
-        \end{verbatim}
-        where \texttt{document.txt} is the document file that you want to generate questions from, 
-        and \texttt{n} is the number of questions you want to generate.
+        You can generate a question using a document using command line: \newline \newline
+        \indent \indent \texttt{\$ ./ask document.txt n} \newline \newline
+        \indent where \texttt{document.txt} is the document file that you want to generate questions from,
+        and \texttt{n} is the 
+        \indent number of questions you want to generate.
         \subsection{Answering document-related questions from a user}
-        You can get answers that is related to the document you will be providing using command line: 
-        \begin{verbatim}
-        $ ./answer document.txt questions.txt 
-        \end{verbatim}
-        where \texttt{document.txt} is the document that you are giving questions about, 
-        and {questions.txt} is the questions you are giving in a text file. 
+        You can get answers that is related to the document you will be providing using command line: \newline \newline
+        \indent \indent \texttt{\$ ./answer document.txt questions.txt} \newline \newline
+        \indent where \texttt{document.txt} is the document that you are giving questions about, 
+        and \texttt{questions.txt} is 
+        \indent the questions you are giving in a text file. 
     \section{Implementation}
     \section{Results}
 \end{document}
