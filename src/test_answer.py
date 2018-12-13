@@ -4,19 +4,24 @@ from pycorenlp import StanfordCoreNLP
 from answer_heuris import answer
 from sgraph import SentenceGraph
 
-#with open(argv[1]) as f:
-#    text = f.readline()
 
-text = 'John is the best football player. John likes apples. John ate to relieve his hunger. John met Jane yesterday. John ate with Jane. John was killed.'
-
+with open(argv[1]) as f:
+    text = f.read()
+#text = 'In Chinese astronomy, the stars of Cancer lie within the The Vermillion Bird of the South (南方朱雀, Nán Fāng Zhū Què).'
+#text += ''
 questions = [
-    'Who is John?',
-    'Who is the best football player?',
-    'Who likes apples?',
-    'Who did John meet?',
-    'Who did John eat with?',
-    'Why did John eat?'
-    #'Who was killed?'
+    'What does the modern symbol for Cancer represent?',
+    'Who set out the official official constellation boundaries of Cancer?',
+    'In Chinese astronomy, what does the stars of Cancer lie within?',
+    'What is the dimmest of zodiacal constellations?',
+    'What is located at the center of Cancer\'s constellation?',
+    'What is the brightest star in Cancer?',
+    'What is cancer?',
+    'What is one of the closest open clusters to Earth? ',
+    'What is Iota Cancri? ',
+    'How many constellations are there in the zodiac?',
+    'What borders Cancer to the west?',
+    'When is Cancer best visible?'
 ]
 
 client = StanfordCoreNLP('http://localhost:9000')

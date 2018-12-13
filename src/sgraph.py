@@ -5,7 +5,9 @@ from collections.abc import Iterable
 
 '''
 This module is a dependency graph class. It implements a subset of the semgrex
-module of Stanford CoreNLP
+module of Stanford CoreNLP. Given a pattern that describes a subtree, search for
+such a subtree in the dependency parse tree (see patterns.py for pattern syntax).
+Also implements subtree which returns the string under a subtree.
 
 Author: Mohammed Nurul Hoque <mnur@cmu.edu> 2018
 '''
@@ -22,7 +24,7 @@ class SentenceGraph:
         '''
 
         self.length = len(corenlp_out['tokens']) + 1
-        self.tokens = [{'word': 'ROOT', 'pos': '$'}] + corenlp_out['tokens']
+        self.tokens = [{'word': '', 'pos': '$'}] + corenlp_out['tokens']
 
         self.edges_basic: List[Set[Tuple[str, int]]] = [set() for _ in range(self.length)]
         self.edges_enhanced: List[Set[Tuple[str, int]]] = [set() for _ in range(self.length)]
@@ -31,35 +33,43 @@ class SentenceGraph:
         for token in corenlp_out['basicDependencies']:
             self.edges_basic[token['governor']].add((token['dep'], token['dependent']))
 
+    ''' match a pattern on any subtree by iteratively trying to match against each
+        node in the tree
+    '''
     def match(self, matcher: Dict[str, Any]) -> Optional[Dict[str, int]] :
         for i in range(self.length):
             result = self.find_relation(i, matcher)
             if result is not None:
                 return result
     
+    ''' return the string of the subtree under a node, ignoring sum relations (see minmax) '''
     def subtree(self, root: int) -> str:
         self.visited = [False for i in range(self.length)]
         low, high = self.minmax(root)
         return ' '.join(map(lambda i: self.tokens[i]['word'], range(low, high+1)))
 
+    ''' lowest index in the subtree '''
     def subtree_start(self, root: int) -> int:
         self.visited = [False for i in range(self.length)]
         return self.minmax(root)[0]
     
+    ''' highest index in the subtree '''
     def subtree_end(self, root: int) -> int:
         self.visited = [False for i in range(self.length)]
         return self.minmax(root)[1]
 
+    ''' lowest and highest indices in the subtree, ignores advcl, acl:relcl and punct '''
     def minmax(self, root: int) -> Tuple[int, int] :
         self.visited[root] = True
         minimum, maximum = root, root
-        for rel, child in self.edges_enhanced[root]:
+        for rel, child in self.edges_basic[root]:
             if rel not in ['acl:relcl', 'advcl', 'punct']:
-                min_, max_ = self.minmax(child)
-                if min_ < minimum:
-                    minimum = min_
-                if max_ > maximum:
-                    maximum = max_
+                if not self.visited[child]:
+                    min_, max_ = self.minmax(child)
+                    if min_ < minimum:
+                        minimum = min_
+                    if max_ > maximum:
+                        maximum = max_
         return minimum, maximum
 
     def find_relation(self, root: int, matcher: Dict[str, Any]) -> Optional[Dict[str, int]]:
@@ -94,6 +104,7 @@ class SentenceGraph:
                         return
             return result
     
+    ''' matches set of attributes against a node '''
     def attr_match(self, node: int, attributes: Dict[str, str]) -> bool:
         for attr, val in attributes.items():
             node_attr = self.tokens[node].get(attr, '$')

@@ -5,7 +5,29 @@ stopwords = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
 def sentence2bag(tokenlist):
     result = set()
     for token in tokenlist:
-        if token['word'.lower()] in stopwords:
+        if token['word'].lower() not in stopwords and token['pos'] != '$':
             result.add(token['lemma'])
     return result
 
+
+# ------- Maximum Matching using Bag of Words -------- #
+
+# Matching Score is calculated by comparing number of word similarties
+# using set() operations
+# Args: inputTokensSet: set of tokens, sentenceList: list of set of tokens, each entry represents a sentence
+def maximumMatchingSentence(inputTokensSet, sentencesTokensList):
+	
+	sentenceMatchingScoreList = []
+
+	for sentenceTokensIndex in range(len(sentencesTokensList)):
+		sentenceTokens = sentencesTokensList[sentenceTokensIndex]
+		entry = (sentenceTokens.intersection(inputTokensSet), sentenceTokens, sentenceTokensIndex)
+		sentenceMatchingScoreList.append(entry)
+
+	maximumMatchingSentence = max(sentenceMatchingScoreList)[2]
+
+	return maximumMatchingSentence
+
+def maxmatch(sentences, sentence_bags, question_bag):
+    maximal = maximumMatchingSentence(question_bag, sentence_bags)
+    return sentences[maximal].subtree(0)

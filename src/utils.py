@@ -1,7 +1,5 @@
+from corref import correfReplace
 from pycorenlp import StanfordCoreNLP
-import json
-from collections import Counter
-
 '''
 	This module is include utilities used throughout the project graph class.
 
@@ -92,30 +90,36 @@ def getTokens(text):
 
 	return map(lambda tokenInfo:tokenInfo['word'], output['tokens'])
 
-# ------------------------ #
+'''
+reads the file and paragraph by paragraph, does coreference resolution and 
+parse again and add to sentence parses.
 
-
-# ------- Maximum Matching using Bag of Words -------- #
-
-# Matching Score is calculated by comparing number of word similarties
-# using set() operations
-# Args: inputTokensSet: set of tokens, sentenceList: list of set of tokens, each entry represents a sentence
-def maximumMatchingSentence(inputTokensSet, sentencesTokensList):
+Returns
+	list of lists where each inner list is the core nlp output ['sentences'] for
+	a paragraph and the outer list is all paragraphs
+'''
+def incremental_parse(client, filename, annot):
+	with open(filename) as f:
+		text = f.read()
 	
-	sentenceMatchingScoreList = []
+	prgs = text.split('\n\n')
+	sentences = []
 
-	for sentenceTokensIndex in range(len(sentencesTokensList)):
-		sentenceTokens = sentencesTokensList[sentenceTokensIndex]
-		entry = (sentenceTokens.intersection(inputTokensSet), sentenceTokens, sentenceTokensIndex)
-		sentenceMatchingScoreList.append(entry)
+	for i in range(len(prgs)):
+		prgs[i] = '\n'.join(filter(lambda line: len(line) > 48, prgs[i].split('\n')))
+		if prgs[i]:
+			out = (client.annotate(prgs[i], properties={
+				'annotators': 'dcoref',
+				'outputFormat': 'json'
+			}))
+			replaced = correfReplace(out)
+			sentences.append(client.annotate(replaced, properties={
+				'annotators': annot,
+				'outputFormat': 'json'
+			})['sentences'])
+			
+	return sentences
 
-	maximumMatchingSentence = max(sentenceMatchingScoreList)[2]
-
-	return maximumMatchingSentence
-
-# ------------------------ #
-
-# ------- example -------- #
 
 if __name__ == "__main__":
 	# ------- Sample Template -------  #
