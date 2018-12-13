@@ -7,7 +7,12 @@ attributes = 'attributes'
 has_deps = 'has_deps'
 has_not = 'has_not'
 
-def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
+# Capitalize the first letter, add punctuation.
+def prettify(sentence: str) -> str: 
+    return sentence[0].upper() + sentence[1:] + "."
+
+
+def who_is_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int]):
     pat1 = { # Who is John? -> John is a player.
         name: 'pred', # the answer
         has_deps: {
@@ -36,7 +41,7 @@ def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], re
         if res:
             return sent.subtree(res['subject'])
 
-def who_did_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int], rel: str):
+def who_did_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int], rel: str):
     pat = {
         attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
         has_deps: {
@@ -64,11 +69,90 @@ def who_did_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], r
 
     
 
-def when_where_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
+def when_where_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int]):
     0
 
-def why_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
-    0
+def why_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int]):
+    pat = { # John eats because he was hungry.
+        name: 'pred', # the verb
+        attributes: {'lemma': question.tokens[res['root']]['lemma']},
+        has_deps: {
+            'advcl:because': {
+                name: 'reason'
+            },
+            'nsubj': { 
+                name: 'subject',
+                attributes: {'lemma': question.tokens[res['subject']]['lemma']}
+            }
+        }
+    }
+
+    pat2 = { # John eats so that he prevents his hunger.
+        name: 'pred', # the verb
+        attributes: {'lemma': question.tokens[res['root']]['lemma']},
+        has_deps: {
+            'advcl:so_that': {
+                name: 'reason'
+            },
+            'nsubj': { 
+                name: 'subject',
+                attributes: {'lemma': question.tokens[res['subject']]['lemma']}
+            }
+        }
+    }
+
+    pat3 = { # John eats to satisfy himself.
+        name: 'pred', # the verb
+        attributes: {'lemma': question.tokens[res['root']]['lemma']},
+        has_deps: {
+            'xcomp': {
+                name: 'reason',
+                has_deps: {
+                    'mark': {
+                        attributes: {'lemma': "to"}
+                    }
+                }
+            },
+            'nsubj': { 
+                name: 'subject',
+                attributes: {'lemma': question.tokens[res['subject']]['lemma']}
+            }
+        }
+    }
+
+    pat4 = { # John eats in order to prevent his hunger.
+        name: 'pred', # the verb
+        attributes: {'lemma': question.tokens[res['root']]['lemma']},
+        has_deps: {
+            'advcl:in_order': {
+                name: 'reason'
+            },
+            'nsubj': { 
+                name: 'subject',
+                attributes: {'lemma': question.tokens[res['subject']]['lemma']}
+            }
+        }
+    }
+
+
+    for sent in sentences:
+        res = sent.match(pat)
+        if res:
+            return sent.subtree(res['reason'])
+        res = sent.match(pat2)
+        if res:
+            return sent.subtree(res['reason'])
+        res = sent.match(pat3)
+        if res:
+            reason_subtree = dict(sent.edges_enhanced[res["reason"]])
+            reason_start = reason_subtree['mark']
+            reason_end = sent.subtree_end(res['reason'])+1
+            return ' '.join(token['word'] for token in sent.tokens[reason_start:reason_end])
+        res = sent.match(pat4)
+        if res:
+            return sent.subtree(res['reason'])
+
+
 
 patterns = [
     ({
@@ -176,7 +260,14 @@ patterns = [
         has_deps: {
             'ROOT': {
                 name: 'root',
-                has_deps: { 'advmod': { attributes: { 'lemma': 'why' }}}
+                has_deps: { 
+                    'advmod': { 
+                        attributes: { 'lemma': 'why' }
+                    },                
+                    'nsubj': { 
+                        name: 'subject'
+                    }
+                }
             }
         }
     },
@@ -188,4 +279,6 @@ def answer(sentences, question):
     for pat, func in patterns:
         res = question.match(pat)
         if res is not None:
-            return func(sentences, question, res)
+            answer = func(sentences, question, res)
+            if answer is not None:
+                return prettify(answer)

@@ -6,14 +6,16 @@ from sgraph import SentenceGraph
 
 #with open(argv[1]) as f:
 #    text = f.readline()
-text = 'John is the best football player. John likes apples. John met Jane yesterday. John ate with Jane. John was killed.'
+
+text = 'John is the best football player. John likes apples. John ate to relieve his hunger. John met Jane yesterday. John ate with Jane. John was killed.'
 
 questions = [
-    #'Who is John?',
-    #'Who is the best football player?',
-    #'Who likes apples?',
-    #'Who did John meet?',
+    'Who is John?',
+    'Who is the best football player?',
+    'Who likes apples?',
+    'Who did John meet?',
     'Who did John eat with?',
+    'Why did John eat?'
     #'Who was killed?'
 ]
 
