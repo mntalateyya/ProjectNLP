@@ -4,6 +4,7 @@ from pycorenlp import StanfordCoreNLP
 from answer_heuris import answer
 from sgraph import SentenceGraph
 
+
 with open(argv[1]) as f:
     text = f.read()
 #text = 'In Chinese astronomy, the stars of Cancer lie within the The Vermillion Bird of the South (南方朱雀, Nán Fāng Zhū Què).'
