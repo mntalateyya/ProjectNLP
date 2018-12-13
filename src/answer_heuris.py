@@ -45,13 +45,8 @@ def who_is_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dic
         if res:
             return sent.subtree(res['subject'])
 
-<<<<<<< HEAD
-def who_did_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int], rel: str):
-    pat = {
-=======
 def who_did_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int], rel: str):
     pats = [{
->>>>>>> 494b3b7a91d8e8b33b401221324d5b96a9253a3d
         attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
         has_deps: {
             rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
