@@ -9,6 +9,7 @@ has_not = 'has_not'
 
 # Capitalize the first letter, add punctuation.
 def prettify(sentence: str) -> str: 
+    sentence = sentence.strip(" .")
     return sentence[0].upper() + sentence[1:] + "."
 
 
@@ -103,29 +104,40 @@ def how_many_pat(sentences, question, res):
             name: 'root',
             attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
             has_deps: {
-                'nummod': {}
+                'nummod': {
+                    'name': 'number'
+                }
             }
         },
         {
             name: 'root',
             attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
             has_deps: {
-                'amod:qmod': {}
+                'amod:qmod': {
+                    'name': 'number'}
             }
         },
-        {
-            name: 'root',
+    ]
+    pat3 = {
+            name: 'unit',
             has_deps: {
-                'nmod:of': { attributes: { 'lemma': question.tokens[res['root']]['lemma'] } }
+                'nmod:of': { 
+                    attributes: { 'lemma': question.tokens[res['root']]['lemma'] } 
+                },
+                'nummod': {
+                    name: 'number'
+                }
             }
         }
-    ]
 
     for sent in sentences:
         for pat in pats:
             res = sent.match(pat)
             if res:
-                return sent.subtree(res['root'])
+                return sent.subtree(res['number'])
+        res = sent.match(pat3)
+        if res:
+            return ' '.join(token['word'] for token in sent.tokens[res['number']:res['unit']+1])
 
 def why_pat(sentences: List[SentenceGraph], question: SentenceGraph, res: Dict[str, int]):
     pat = { # John eats because he was hungry.

@@ -102,7 +102,7 @@ def incremental_parse(client, filename, annot):
 	with open(filename) as f:
 		text = f.read()
 	
-	prgs = text.split('\n\n')
+	prgs = text.split('\n')
 	sentences = []
 
 	for i in range(len(prgs)):
