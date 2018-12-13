@@ -90,7 +90,14 @@ def getTokens(text):
 
 	return map(lambda tokenInfo:tokenInfo['word'], output['tokens'])
 
+'''
+reads the file and paragraph by paragraph, does coreference resolution and 
+parse again and add to sentence parses.
 
+Returns
+	list of lists where each inner list is the core nlp output ['sentences'] for
+	a paragraph and the outer list is all paragraphs
+'''
 def incremental_parse(client, filename, annot):
 	with open(filename) as f:
 		text = f.read()
@@ -101,14 +108,15 @@ def incremental_parse(client, filename, annot):
 	for i in range(len(prgs)):
 		prgs[i] = '\n'.join(filter(lambda line: len(line) > 48, prgs[i].split('\n')))
 		if prgs[i]:
-			out = eval(client.annotate(prgs[i], properties={
-				'annotators': annot+',dcoref',
+			out = (client.annotate(prgs[i], properties={
+				'annotators': 'dcoref',
+				'outputFormat': 'json'
 			}))
 			replaced = correfReplace(out)
-			sentences.append(eval(client.annotate(replaced, properties={
+			sentences.append(client.annotate(replaced, properties={
 				'annotators': annot,
 				'outputFormat': 'json'
-			}))['sentences'])
+			})['sentences'])
 			
 	return sentences
 

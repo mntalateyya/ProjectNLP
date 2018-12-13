@@ -35,7 +35,7 @@ def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], re
         if res:
             return (sent.subtree(res['pred'])
                 .replace(sent.subtree(res['subject']), '')
-                .replace(cop, '', 1))
+                .replace(cop, '', 1)).strip()
         res = sent.match(pat2)
         if res:
             return sent.subtree(res['subject'])

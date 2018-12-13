@@ -1,16 +1,30 @@
 from sys import argv
+
 from pycorenlp import StanfordCoreNLP
+
 from answer_heuris import answer
 from maxmatch import maxmatch, sentence2bag
 from sgraph import SentenceGraph
 from utils import incremental_parse
+
+'''
+The driver script which runs the input through the different components.
+
+# Flow
+- article document is given to incremental parse to to do coref resolution, returns CoreNLP output
+  on the resolved text. (utils.py)
+- construct the sentence graph for all these sentences (sgraph.py)
+- construct the word bags for all sentences (maxmatch.py)
+- 
+'''
+
 client = StanfordCoreNLP('http://localhost:9000')
 
 sentences = []
 questions = []
 
 document = incremental_parse(client, argv[1], 'depparse, lemma')
-sentences = list(map(SentenceGraph, [sentence for sentence in prgr for prgr in document]))
+sentences = list(map(SentenceGraph, [sentence for prgr in document for sentence in prgr ]))
 
 sentences_bag = list(map(lambda s: sentence2bag(s.tokens), sentences))
 
