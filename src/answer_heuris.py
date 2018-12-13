@@ -35,7 +35,7 @@ def who_is_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], re
         if res:
             return (sent.subtree(res['pred'])
                 .replace(sent.subtree(res['subject']), '')
-                .replace(cop, '', 1)).strip()
+                .replace(cop, '', 1))
         res = sent.match(pat2)
         if res:
             return sent.subtree(res['subject'])
@@ -46,18 +46,25 @@ def who_did_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], r
         has_deps: {
             rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
             for rel, idx in question.edges_enhanced[res['root']] 
-            if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj', 'amod', 'advmod']
+            if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj', 'amod', 'advmod'] or rel[:4] == 'nmod'
         }
     }]
     if rel == 'nmod':
         rel += ':{}'.format(question.tokens[res['prep']]['lemma'])
     pats[0][has_deps].update({rel: {'name': 'subject' }})
 
-    pat2 = deepcopy(pats[0])
-    pat2[has_deps].pop(rel)
+    pat = deepcopy(pats[0])
+    pat[has_deps].pop(rel)
     pred_dep = {'nsubj': 'csubj', 'nsubjpass': 'csubjpass', 'dobj': 'ccomp', 'iobj': 'ccomp'}
-    pat2[has_deps].update({pred_dep[rel]: {'name': 'subject' }})
-    pats.append(pat2)
+    pat[has_deps].update({pred_dep[rel]: {'name': 'subject' }})
+    pats.append(pat)
+
+    if rel in ['nsubj', 'nsubjpass']:
+        flip = {'nsubj': 'nsubjpass', 'nsubjpass': 'nsubj'}[rel]
+        pat = deepcopy(pats[0])
+        pat[has_deps].pop(rel)
+        pat[has_deps].update({flip: {'name': 'subject' }})
+        pats.append(pat)
     
     for sent in sentences:
         for pat in pats:
@@ -77,7 +84,7 @@ def when_where_pat(sentences: List[SentenceGraph], question: List[SentenceGraph]
                 },
                 rel: { name: 'spacetime' },
             }
-        } for rel in ['nmod:in', 'nmod:tmod', 'advmod'] # NOTE add others
+        } for rel in ['nmod:in', 'nmod:tmod'] # NOTE add others
     ]
     for sent in sentences:
         for pat in pats:
@@ -86,7 +93,54 @@ def when_where_pat(sentences: List[SentenceGraph], question: List[SentenceGraph]
                 return sent.subtree(res['spacetime'])
 
 def why_pat(sentences: List[SentenceGraph], question: List[SentenceGraph], res: Dict[str, int]):
-    0
+    pats = [
+        {
+            attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
+            has_deps: {
+                **{
+                    rel: { attributes: { 'lemma': question.tokens[idx]['lemma'] }} 
+                    for rel, idx in question.edges_enhanced[res['root']] 
+                    if rel in ['nsubj', 'nsubjpass', 'dobj', 'iobj', 'amod']
+                },
+                rel: { name: 'reason' },
+            }
+        } for rel in ['nmod:because', 'nmod:because_of', 'advcl:to', 'xcomp']
+    ]
+    for sent in sentences:
+        for pat in pats:
+            res = sent.match(pat)
+            if res:
+                return sent.subtree(res['reason'])
+
+def how_many_pat(sentences, question, res):
+    pats = [
+        {
+            name: 'root',
+            attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
+            has_deps: {
+                'nummod': {}
+            }
+        },
+        {
+            name: 'root',
+            attributes: { 'lemma': question.tokens[res['root']]['lemma'] },
+            has_deps: {
+                'amod:qmod': {}
+            }
+        },
+        {
+            name: 'root',
+            has_deps: {
+                'nmod:of': { attributes: { 'lemma': question.tokens[res['root']]['lemma'] } }
+            }
+        }
+    ]
+
+    for sent in sentences:
+        for pat in pats:
+            res = sent.match(pat)
+            if res:
+                return sent.subtree(res['root'])
 
 patterns = [
     ({
@@ -155,16 +209,23 @@ patterns = [
     ),
 
     ({
-        attributes: {'pos': '$'},
-        has_deps: {
-            'ROOT': {
-                name: 'root',
-                has_deps: { 'advmod': { attributes: { 'lemma': 'why' }}}
-            }
-        }
+        name: 'root',
+        has_deps: { 'advmod': { attributes: { 'lemma': 'why' }}}
     },
     why_pat
     ),
+
+    ({
+        name: 'root',
+        has_deps: {
+            'amod': {
+                name: 'quantity',
+                has_deps: { 
+                    'advmod': { attributes: { 'lemma': 'how' }}
+                }
+            }
+        }
+    }, how_many_pat)
 ]
 
 def answer(sentences, question):

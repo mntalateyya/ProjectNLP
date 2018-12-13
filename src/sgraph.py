@@ -63,7 +63,7 @@ class SentenceGraph:
         self.visited[root] = True
         minimum, maximum = root, root
         for rel, child in self.edges_basic[root]:
-            if rel not in ['acl:relcl', 'advcl', 'punct']:
+            if rel not in ['acl:relcl', 'advcl', 'punct'] or (rel=='punct' and self.has_root(child)):
                 if not self.visited[child]:
                     min_, max_ = self.minmax(child)
                     if min_ < minimum:
@@ -71,6 +71,11 @@ class SentenceGraph:
                     if max_ > maximum:
                         maximum = max_
         return minimum, maximum
+
+    def has_root(self, root):
+        for rel, _ in self.edges_basic[root]:
+            if rel == 'root': return True
+        return False
 
     def find_relation(self, root: int, matcher: Dict[str, Any]) -> Optional[Dict[str, int]]:
         '''        

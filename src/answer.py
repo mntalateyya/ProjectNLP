@@ -40,8 +40,10 @@ with open(argv[2]) as f:
 questions = list(map(SentenceGraph, questions))
 
 for q in questions:
+    print(' '.join(map(lambda tok: tok['word'], q.tokens)))
     ans = answer(sentences, q)
     if ans:
-        print(ans)
+        print(ans.strip())
     else:
         print(maxmatch(sentences, sentences_bag, sentence2bag(q.tokens)))
+    print()

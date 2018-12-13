@@ -2,8 +2,8 @@ from pattern.en import conjugate
 '''
 List of pattern-template tuples. 
 
-A pattern matches nodes in the dependency graph and is a dictionary that has zero or more
-of the following 4 keys:
+A pattern matches a node (subtree under that node) in the dependency graph and is a dictionary 
+that has zero or more of the following 4 keys:
 - name: if successfully matched the returned dictionary will have this as a key mapping
         to the index of this node.
 - attributes: a dictionary of attributes this node has to have. these attributes are the
@@ -11,14 +11,14 @@ of the following 4 keys:
         value is of the form `var1 | ... | varn` which matches if any of the varients match.
         Alternatively, it can be `! var1 | ... | varn` which matches if none of the varients match.
 - has_deps: depndency relations this node should have, where this node is the governor
-        of the relation. This a dictionary where keys are relations and values are 
+        of the relation. This is a dictionary where keys are relations and values are 
         recursive patterns.
 - has_not: a list of relations this node should not have.
 
 a template is a function that takes the SentenceGraph object and result of matching and generates
-a question-answer pair of strings. The answer is only for our testing so return an empty string if
-you wish. For simple templates, they are given as a lambda, while complex ones are factored into
-named functions.
+a question-answer pair of strings. The answer is only for our testing. An empty string can be returned if
+some extra conditions didn't apply which couldn't be enforeced through patterns. 
+For simple templates, they are given as a lambda, while complex ones are factored into named functions.
 '''
 name = 'name'
 attributes = 'attributes'
