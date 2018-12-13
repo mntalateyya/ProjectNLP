@@ -49,31 +49,31 @@ def correfReplace(output):
 
   return replaced
 
+if __name__ == "__main__":
+  # TEST 
+  text = "Jack is a football player. He is the best player. He is part of the winning team."
+  # output is "Jack is a football player. Jack is the best player. Jack is part of the winning team."
 
-# TEST 
-text = "Jack is a football player. He is the best player. He is part of the winning team."
-# output is "Jack is a football player. Jack is the best player. Jack is part of the winning team."
-
-text = "Jack is a football player. He is the best player. He is part of the winning team. Mina is a student. She hates coffee."
-# output is "Jack is a football player. Jack is the best player. Jack is part of the winning team. Mina is a student. Mina hates coffee."
-
-
-dataf = open("../data/set1/a1.txt","r")
-data = dataf.read()
-
-datap = data.split("\n\n")
+  text = "Jack is a football player. He is the best player. He is part of the winning team. Mina is a student. She hates coffee."
+  # output is "Jack is a football player. Jack is the best player. Jack is part of the winning team. Mina is a student. Mina hates coffee."
 
 
-# since text is too long, I'm giving texts in paragraphs
-for text in datap:
-  nlp = StanfordCoreNLP('http://localhost:9000')
+  dataf = open("../data/set1/a1.txt","r")
+  data = dataf.read()
 
-  output = nlp.annotate(text, properties={
-        'annotators': 'dcoref', 
-        'outputFormat': 'json'
-        })
+  datap = data.split("\n\n")
 
-  print (correfReplace(output))
+
+  # since text is too long, I'm giving texts in paragraphs
+  for text in datap:
+    nlp = StanfordCoreNLP('http://localhost:9000')
+
+    output = nlp.annotate(text, properties={
+          'annotators': 'dcoref', 
+          'outputFormat': 'json'
+          })
+
+    print (correfReplace(output))
 
 ## TEST OUTPUT OF set1/a1 
 #

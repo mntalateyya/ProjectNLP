@@ -1,7 +1,5 @@
+from corref import correfReplace
 from pycorenlp import StanfordCoreNLP
-import json
-from collections import Counter
-
 '''
 	This module is include utilities used throughout the project graph class.
 
@@ -92,9 +90,28 @@ def getTokens(text):
 
 	return map(lambda tokenInfo:tokenInfo['word'], output['tokens'])
 
-# ------------------------ #
 
-# ------- example -------- #
+def incremental_parse(client, filename, annot):
+	with open(filename) as f:
+		text = f.read()
+	
+	prgs = text.split('\n\n')
+	sentences = []
+
+	for i in range(len(prgs)):
+		prgs[i] = '\n'.join(filter(lambda line: len(line) > 48, prgs[i].split('\n')))
+		if prgs[i]:
+			out = eval(client.annotate(prgs[i], properties={
+				'annotators': annot+',dcoref',
+			}))
+			replaced = correfReplace(out)
+			sentences.append(eval(client.annotate(replaced, properties={
+				'annotators': annot,
+				'outputFormat': 'json'
+			}))['sentences'])
+			
+	return sentences
+
 
 if __name__ == "__main__":
 	# ------- Sample Template -------  #

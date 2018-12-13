@@ -3,25 +3,14 @@ from pycorenlp import StanfordCoreNLP
 from answer_heuris import answer
 from maxmatch import maxmatch, sentence2bag
 from sgraph import SentenceGraph
-
+from utils import incremental_parse
 client = StanfordCoreNLP('http://localhost:9000')
 
 sentences = []
 questions = []
 
-with open(argv[1]) as f:
-    line = f.readline()
-    while line:
-        if len(line) < 48:
-            line = f.readline()
-            continue
-        corenlp_out = eval(client.annotate(line, properties={
-                'annotators': 'depparse, lemma',
-            }))
-        sentences += corenlp_out['sentences']
-        line = f.readline()
-sentences = list(map(SentenceGraph, sentences))
-#sentences_text = [s.subtree(0) for s in sentences]
+document = incremental_parse(client, argv[1], 'depparse, lemma')
+sentences = list(map(SentenceGraph, [sentence for sentence in prgr for prgr in document]))
 
 sentences_bag = list(map(lambda s: sentence2bag(s.tokens), sentences))
 
@@ -29,8 +18,8 @@ with open(argv[2]) as f:
     line = f.readline()
     while line:
         corenlp_out = eval(client.annotate(line, properties={
-                'annotators': 'depparse, pos, lemma, ner',
-            }))
+            'annotators': 'depparse, pos, lemma, ner',
+        }))
         questions += corenlp_out['sentences']
         line = f.readline()
 
