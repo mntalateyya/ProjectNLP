@@ -1,4 +1,4 @@
-# Natural Language Processing Project - 11-411 CMU
+# Natural Language Processing Project 11-411 CMU
 A question generation and answering system from article documents. The system generates questions and answers by searching for certain patterns in the dependency trees of sentences or using maximum lexical overlap.
 
 We implemented these two functions that takes a document and would either return questions or answers if asked, by coreference resolution, patterns question/answer generating, rankings, maximum overlap.
